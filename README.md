@@ -25,6 +25,7 @@
 - [Why this exists](#why-this-exists)
 - [What does 7.4B tokens mean?](#what-does-74b-tokens-mean)
 - [Supported providers](#supported-providers)
+- [Provider keys: Cloudflare and GitHub Models](#provider-keys-cloudflare-and-github-models)
 - [Compatible CLIs & coding agents](#compatible-clis--coding-agents)
 - [Features](#features)
 - [Quick start](#quick-start)
@@ -96,6 +97,15 @@ The [original project's published catalog](https://github.com/tashfeenahmed/free
 Plus a **custom** provider — point chat, embedding, image, or audio models at any OpenAI-compatible endpoint (llama.cpp, LM Studio, vLLM, a local Ollama, or a remote gateway) from the Keys page.
 
 The full, always-current list lives at **[upstream catalog site/models](https://freellmapi.co/models.html)** with per-model rate limits, context windows, and free-token budgets.
+
+## Provider keys: Cloudflare and GitHub Models
+
+Provider credentials go into **SwitchLLM dashboard → Keys**. They are different from the **SwitchLLM unified API key** that your projects use. Never put provider tokens in Git or a public issue.
+
+- **Cloudflare Workers AI:** In the [Cloudflare Workers AI REST API setup](https://developers.cloudflare.com/workers-ai/get-started/rest-api/), open **Workers AI → Use REST API**. Copy both the **API token** and the **Account ID** shown under **Get Account ID**. If you make a custom token instead of using Cloudflare's template, grant **Account → Workers AI → Read** and **Edit**, scoped to your account. SwitchLLM asks for the token and Account ID separately and uses them together for Cloudflare requests.
+- **GitHub Models:** On GitHub's token page, choose a **fine-grained personal access token** with **Account permissions → Models → Read**; repository write access is not needed for model inference. This is a *GitHub* token, not a Cloudflare Account ID. [GitHub's `models:read` requirement](https://github.blog/changelog/2025-05-15-modelsread-now-required-for-github-models-access/).
+
+After adding either provider, use **Test** on the Keys page. Your available models and usage limits depend on that provider's account and current terms.
 
 ## Compatible CLIs & coding agents
 
