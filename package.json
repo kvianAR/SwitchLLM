@@ -1,5 +1,5 @@
 {
-  "name": "@freellmapi/monorepo",
+  "name": "@switchllm/monorepo",
   "private": true,
   "workspaces": [
     "shared",

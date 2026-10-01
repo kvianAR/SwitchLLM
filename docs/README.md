@@ -1,4 +1,4 @@
-# FreeLLMAPI documentation
+# SwitchLLM documentation
 
 Pick a language:
 

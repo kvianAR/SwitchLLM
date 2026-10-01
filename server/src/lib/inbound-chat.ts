@@ -4,7 +4,7 @@ import type {
   ChatToolCall,
   ChatToolChoice,
   ChatToolDefinition,
-} from '@freellmapi/shared/types.js';
+} from '@switchllm/shared/types.js';
 import { getDb } from '../db/index.js';
 import {
   routeRequest,

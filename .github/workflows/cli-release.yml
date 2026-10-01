@@ -1,14 +1,12 @@
 name: CLI release
 
-# Publishes the `freellmapi` CLI to npm. Closes #671 — the README and
-# docs/clients/01-agent-clients.md have always documented `npx freellmapi setup-claude`, but the
+# Publishes the `switchllm` CLI to npm. Closes #671 — the README and
+# docs/clients/01-agent-clients.md have always documented `npx switchllm setup-claude`, but the
 # package was never pushed to the registry, so every one of those commands died
 # with npm E404.
 #
 # Triggers:
-#   - push to main touching cli/**   publish when cli/package.json's version is
-#                                    not on the registry yet; no-op otherwise
-#   - workflow_dispatch              manual run
+#   - workflow_dispatch              manual run only in this fork
 #
 # The version guard makes this idempotent: ordinary cli/src changes re-run the
 # job, see the version already published, and skip. To ship a new version, bump
@@ -23,7 +21,7 @@ name: CLI release
 #
 # One-time setup on npmjs.com (Package settings → Trusted Publisher):
 #   Organization or user: tashfeenahmed
-#   Repository:           freellmapi
+#   Repository:           switchllm
 #   Workflow filename:    cli-release.yml
 # Trusted publishing cannot bootstrap a package that does not exist yet — npm
 # has no package settings page to configure until the first version is up — so
@@ -34,11 +32,6 @@ name: CLI release
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'cli/**'
-      - '.github/workflows/cli-release.yml'
 
 permissions:
   contents: read
@@ -68,12 +61,12 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           # `npm view` exits non-zero for an unpublished name/version; an empty
           # result is the signal to publish, not an error.
-          PUBLISHED=$(npm view "freellmapi@$VERSION" version 2>/dev/null || true)
+          PUBLISHED=$(npm view "switchllm@$VERSION" version 2>/dev/null || true)
           if [ -n "$PUBLISHED" ]; then
-            echo "freellmapi@$VERSION is already on the registry — nothing to do."
+            echo "switchllm@$VERSION is already on the registry — nothing to do."
             echo "should-publish=false" >> "$GITHUB_OUTPUT"
           else
-            echo "freellmapi@$VERSION is not published yet."
+            echo "switchllm@$VERSION is not published yet."
             echo "should-publish=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -96,8 +89,8 @@ jobs:
           mkdir -p "$WORKDIR" && cd "$WORKDIR"
           npm init -y >/dev/null
           npm install "$RUNNER_TEMP/$TARBALL" >/dev/null
-          npx freellmapi --help
-          npx freellmapi list >/dev/null
+          npx switchllm --help
+          npx switchllm list >/dev/null
 
       # No NODE_AUTH_TOKEN: the OIDC credential comes from id-token: write.
       # Provenance is attached automatically under trusted publishing.
@@ -110,7 +103,7 @@ jobs:
         run: |
           V="${{ steps.version.outputs.version }}"
           if [ "${{ steps.version.outputs.should-publish }}" = "true" ]; then
-            echo "Published freellmapi@$V" >> "$GITHUB_STEP_SUMMARY"
+            echo "Published switchllm@$V" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "freellmapi@$V is already on the registry — skipped." >> "$GITHUB_STEP_SUMMARY"
+            echo "switchllm@$V is already on the registry — skipped." >> "$GITHUB_STEP_SUMMARY"
           fi

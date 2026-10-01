@@ -80,7 +80,7 @@ const RENDER_CHUNK = 50
 // alone. Collapse state is remembered per browser, the same way the chain
 // manager and the penalty inspector below remember theirs; a fresh install
 // (no stored value) starts collapsed.
-const OPTIONS_COLLAPSED_KEY = 'freellmapi.routingMoreOptions.collapsed'
+const OPTIONS_COLLAPSED_KEY = 'switchllm.routingMoreOptions.collapsed'
 
 function readOptionsCollapsed(): boolean {
   try {

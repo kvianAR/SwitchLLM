@@ -1,7 +1,7 @@
 {
-  "name": "freellmapi-desktop",
+  "name": "switchllm-desktop",
   "version": "0.13.2",
-  "description": "FreeLLMAPI menu-bar app — local OpenAI-compatible LLM router",
+  "description": "SwitchLLM menu-bar app — local OpenAI-compatible LLM router",
   "author": {
     "name": "tashfeenahmed",
     "email": "tashfene@gmail.com",

@@ -651,7 +651,7 @@ function UpdateChecker({ active }: { active: boolean }) {
   // The desktop shell knows its own version outright; browser and container
   // installs ask the server, which resolves it from the release manifest.
   const shellVersion = typeof window !== 'undefined'
-    ? (window as { __FREEAPI_VERSION__?: string | null }).__FREEAPI_VERSION__ ?? null
+    ? (window as { __SWITCHLLM_VERSION__?: string | null }).__SWITCHLLM_VERSION__ ?? null
     : null
   const [statusInfo, setStatusInfo] = useState<UpdateStatusInfo | null>(null)
   const [checkResult, setCheckResult] = useState<UpdateCheckInfo | null>(null)
@@ -780,7 +780,7 @@ function UpdateChecker({ active }: { active: boolean }) {
   return (
     <>
       <Row
-        label="FreeLLMAPI"
+        label="SwitchLLM"
         hint={t('settings.contactsGithub')}
         control={(
           <div className="flex items-center gap-2 text-sm tabular-nums">

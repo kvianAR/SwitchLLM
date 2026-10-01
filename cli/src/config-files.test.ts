@@ -15,22 +15,22 @@ afterEach(() => {
 
 describe('safe config writes', () => {
   it('writes a fresh env file without a leading blank line', () => {
-    const rendered = renderFile({ path: '/unused', format: 'env', content: 'FREELLMAPI_API_KEY=k\n' }, '');
-    expect(rendered).toBe('FREELLMAPI_API_KEY=k\n');
-    expect(renderFile({ path: '/unused', format: 'env', content: 'FREELLMAPI_API_KEY=k\n' }, rendered)).toBe(rendered);
+    const rendered = renderFile({ path: '/unused', format: 'env', content: 'SWITCHLLM_API_KEY=k\n' }, '');
+    expect(rendered).toBe('SWITCHLLM_API_KEY=k\n');
+    expect(renderFile({ path: '/unused', format: 'env', content: 'SWITCHLLM_API_KEY=k\n' }, rendered)).toBe(rendered);
   });
 
   it('renders a fresh Continue config idempotently', () => {
     const generated = [
-      '# freellmapi:start',
-      'name: FreeLLMAPI',
+      '# switchllm:start',
+      'name: SwitchLLM',
       'version: 1.0.0',
       'schema: v1',
       'models:',
-      '  - name: FreeLLMAPI',
+      '  - name: SwitchLLM',
       '    provider: openai',
       '    model: coder',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -44,7 +44,7 @@ describe('safe config writes', () => {
       content: generated,
     }, first);
     expect(second).toBe(first);
-    expect(first).not.toContain('freellmapi:start');
+    expect(first).not.toContain('switchllm:start');
     expect(first.match(/^models:$/gm)).toHaveLength(1);
   });
 
@@ -64,14 +64,14 @@ describe('safe config writes', () => {
     const rendered = renderFile({
       path: '/unused',
       format: 'json',
-      value: { provider: { freellmapi: true } },
+      value: { provider: { switchllm: true } },
     }, existing);
     expect(rendered).toContain('// user configuration');
     expect(rendered).toContain('// keep the chosen theme');
     expect(rendered).toContain('/* keep the unrelated provider */');
     expect(parse(rendered)).toEqual({
       theme: 'dark',
-      provider: { other: true, freellmapi: true },
+      provider: { other: true, switchllm: true },
     });
   });
 
@@ -90,15 +90,15 @@ describe('safe config writes', () => {
       '',
     ].join('\n');
     const generated = [
-      '# freellmapi:start',
-      'name: FreeLLMAPI',
+      '# switchllm:start',
+      'name: SwitchLLM',
       'version: 1.0.0',
       'schema: v1',
       'models:',
-      '  - name: FreeLLMAPI',
+      '  - name: SwitchLLM',
       '    provider: openai',
       '    model: coder',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -115,7 +115,7 @@ describe('safe config writes', () => {
     expect(first).toContain('# personal config');
     expect(first).toContain('name: Personal');
     expect(first).toContain('  - name: Existing');
-    expect(first).toContain('  - name: FreeLLMAPI');
+    expect(first).toContain('  - name: SwitchLLM');
     expect(first).toContain('rules:\n  - Keep this rule');
     expect(first.match(/^models:$/gm)).toHaveLength(1);
   });
@@ -129,24 +129,24 @@ describe('safe config writes', () => {
       '  - name: Existing',
       '    provider: ollama',
       '    model: qwen',
-      '# freellmapi:start',
+      '# switchllm:start',
       'models:',
-      '  - name: FreeLLMAPI',
+      '  - name: SwitchLLM',
       '    provider: openai',
       '    model: old',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const generated = [
-      '# freellmapi:start',
-      'name: FreeLLMAPI',
+      '# switchllm:start',
+      'name: SwitchLLM',
       'version: 1.0.0',
       'schema: v1',
       'models:',
-      '  - name: FreeLLMAPI',
+      '  - name: SwitchLLM',
       '    provider: openai',
       '    model: current',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const rendered = renderFile({
@@ -166,10 +166,10 @@ describe('safe config writes', () => {
   it('replaces generated YAML scalar keys without creating duplicates', () => {
     const existing = '# user config\nGOOSE_PROVIDER: old\nGOOSE_MODEL: old\nkeep: true\n';
     const generated = [
-      '# freellmapi:start',
-      'GOOSE_PROVIDER: freellmapi',
+      '# switchllm:start',
+      'GOOSE_PROVIDER: switchllm',
       'GOOSE_MODEL: coder',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -201,7 +201,7 @@ describe('safe config writes', () => {
       '    anthropic:',
       '      # keep me',
       '      apiKeyEnv: ANTHROPIC_API_KEY',
-      '    freellmapi:',
+      '    switchllm:',
       '      baseURL: http://old:1/v1',
       '      models:',
       '        - id: stale',
@@ -218,14 +218,14 @@ describe('safe config writes', () => {
       value: {
         'llm-pi-ai': {
           providers: {
-            freellmapi: {
+            switchllm: {
               baseURL: 'http://localhost:3001/v1',
               models: [{ id: 'auto' }],
             },
           },
         },
         'agent-default-model': {
-          provider: 'freellmapi',
+          provider: 'switchllm',
           model: 'auto',
           reasoningEffort: undefined,
         },
@@ -238,7 +238,7 @@ describe('safe config writes', () => {
     expect(once).toContain('baseURL: http://localhost:3001/v1');
     expect(once).not.toContain('http://old:1/v1');
     expect(once).not.toContain('stale');
-    expect(once).toContain('provider: freellmapi');
+    expect(once).toContain('provider: switchllm');
     expect(once).not.toContain('reasoningEffort');
     expect(once).toContain('other: { a: 1 }');
     expect(renderFile(file, once)).toBe(once);
@@ -270,7 +270,7 @@ describe('safe config writes', () => {
       'model = "old"',
       'model_provider = "old"',
       '',
-      '[model_providers.freellmapi]',
+      '[model_providers.switchllm]',
       'name = "Old"',
       'base_url = "https://old.invalid/v1"',
       '',
@@ -279,14 +279,14 @@ describe('safe config writes', () => {
       '',
     ].join('\n');
     const generated = [
-      '# freellmapi:start',
+      '# switchllm:start',
       'model = "coder"',
-      'model_provider = "freellmapi"',
+      'model_provider = "switchllm"',
       '',
-      '[model_providers.freellmapi]',
-      'name = "FreeLLMAPI"',
+      '[model_providers.switchllm]',
+      'name = "SwitchLLM"',
       'base_url = "http://localhost:3000/v1"',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -303,7 +303,7 @@ describe('safe config writes', () => {
     expect(first).toContain('# personal config');
     expect(first).toContain('[mcp_servers.personal]\ncommand = "keep-me"');
     expect(first.match(/^model =/gm)).toHaveLength(1);
-    expect(first.match(/^\[model_providers\.freellmapi\]$/gm)).toHaveLength(1);
+    expect(first.match(/^\[model_providers\.switchllm\]$/gm)).toHaveLength(1);
   });
 
   it('keeps generated root TOML keys in the root region when the file ends in a table', () => {
@@ -317,14 +317,14 @@ describe('safe config writes', () => {
       '',
     ].join('\n');
     const generated = [
-      '# freellmapi:start',
+      '# switchllm:start',
       'model = "coder"',
-      'model_provider = "freellmapi"',
+      'model_provider = "switchllm"',
       '',
-      '[model_providers.freellmapi]',
-      'name = "FreeLLMAPI"',
+      '[model_providers.switchllm]',
+      'name = "SwitchLLM"',
       'base_url = "http://localhost:3000/v1"',
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -344,7 +344,7 @@ describe('safe config writes', () => {
     const lines = first.split('\n');
     const firstHeader = lines.findIndex(line => /^\[[^\]]+\]$/.test(line));
     const modelLine = lines.findIndex(line => line === 'model = "coder"');
-    const providerLine = lines.findIndex(line => line === 'model_provider = "freellmapi"');
+    const providerLine = lines.findIndex(line => line === 'model_provider = "switchllm"');
     expect(firstHeader).toBeGreaterThan(-1);
     expect(modelLine).toBeGreaterThan(-1);
     expect(modelLine).toBeLessThan(firstHeader);
@@ -352,7 +352,7 @@ describe('safe config writes', () => {
     expect(providerLine).toBeLessThan(firstHeader);
     expect(first).toContain('sandbox_mode = "workspace-write"');
     expect(first).toContain('[mcp_servers.personal]\ncommand = "keep-me"\nargs = ["--serve"]');
-    expect(first).toContain('[model_providers.freellmapi]');
+    expect(first).toContain('[model_providers.switchllm]');
   });
 
   it('only strips root TOML keys that the generated root region sets', () => {
@@ -365,12 +365,12 @@ describe('safe config writes', () => {
       '',
     ].join('\n');
     const generated = [
-      '# freellmapi:start',
+      '# switchllm:start',
       'model = "coder"',
       '',
-      '[model_providers.freellmapi]',
-      'name = "FreeLLMAPI"',
-      '# freellmapi:end',
+      '[model_providers.switchllm]',
+      'name = "SwitchLLM"',
+      '# switchllm:end',
       '',
     ].join('\n');
     const first = renderFile({
@@ -386,7 +386,7 @@ describe('safe config writes', () => {
   });
 
   it('does not write any file when a later file in the batch fails to merge', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'freellmapi-cli-'));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'switchllm-cli-'));
     temporary.push(directory);
     const good = path.join(directory, 'good.json');
     const bad = path.join(directory, 'bad.json');
@@ -403,7 +403,7 @@ describe('safe config writes', () => {
     // A user with a DeepSeek provider already configured runs setup-atomcode:
     // `default_provider` must land in the root region (a key appended after
     // `[providers.deepseek]` would become that table's key), the deepseek
-    // table must survive, and a stale `[providers.freellmapi]` is replaced.
+    // table must survive, and a stale `[providers.switchllm]` is replaced.
     const existing = [
       'default_provider = "deepseek"',
       'auto_update = true',
@@ -413,43 +413,43 @@ describe('safe config writes', () => {
       'api_key = "sk-keep"',
       'model = "deepseek-chat"',
       '',
-      '[providers.freellmapi]',
+      '[providers.switchllm]',
       'type = "openai"',
       'model = "stale-model"',
       '',
     ].join('\n');
     const generated = [
-      'default_provider = "freellmapi"',
+      'default_provider = "switchllm"',
       '',
-      '[providers.freellmapi]',
+      '[providers.switchllm]',
       'type = "openai"',
       'base_url = "http://localhost:3000/v1"',
-      'api_key = "freellmapi-test-key"',
+      'api_key = "switchllm-test-key"',
       'model = "fast-coder"',
       'context_window = 131072',
     ].join('\n');
     const merged = renderFile({ path: '/unused', format: 'toml', content: generated }, existing);
     const lines = merged.split('\n');
     const firstTable = lines.findIndex(line => line.startsWith('['));
-    expect(lines.slice(0, firstTable)).toContain('default_provider = "freellmapi"');
+    expect(lines.slice(0, firstTable)).toContain('default_provider = "switchllm"');
     expect(lines.slice(0, firstTable)).toContain('auto_update = true');
     expect(merged.match(/^default_provider =/gm)).toHaveLength(1);
     expect(merged).toContain('[providers.deepseek]\ntype = "openai"\napi_key = "sk-keep"');
-    expect(merged.match(/^\[providers\.freellmapi\]$/gm)).toHaveLength(1);
+    expect(merged.match(/^\[providers\.switchllm\]$/gm)).toHaveLength(1);
     expect(merged).not.toContain('stale-model');
     expect(merged).toContain('context_window = 131072');
     expect(renderFile({ path: '/unused', format: 'toml', content: generated }, merged)).toBe(merged);
   });
 
   it('creates a timestamped backup before replacing a real file', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'freellmapi-cli-'));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'switchllm-cli-'));
     temporary.push(directory);
     const target = path.join(directory, 'config.toml');
     fs.writeFileSync(target, 'user_setting = true\n');
     const result = applyGeneratedFile({
       path: target,
       format: 'toml',
-      content: '# freellmapi:start\nmodel = "auto"\n# freellmapi:end\n',
+      content: '# switchllm:start\nmodel = "auto"\n# switchllm:end\n',
     }, false);
     expect(result.backupPath).toBeTruthy();
     expect(fs.readFileSync(result.backupPath!, 'utf8')).toBe('user_setting = true\n');
@@ -458,7 +458,7 @@ describe('safe config writes', () => {
   });
 
   it('does not write in dry-run mode', () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'freellmapi-cli-'));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'switchllm-cli-'));
     temporary.push(directory);
     const target = path.join(directory, 'new.json');
     const result = applyGeneratedFile({

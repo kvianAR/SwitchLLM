@@ -1,35 +1,20 @@
 <div align="center">
 
-# FreeLLMAPI
+# SwitchLLM
 
-**7.4 billion tokens per month.  34 free LLM providers. 635 free model endpoints. One OpenAI-compatible endpoint.**
+### One local API. Your choice of models.
 
-Aggregate free tiers from dozens of providers, plus custom OpenAI-compatible chat, embedding, image, and audio endpoints, behind a single `/v1` API. Keys are stored encrypted. A router picks the best available model for each request, falls over to the next provider when one is rate-limited, and tracks per-key usage so you stay under every free-tier cap.
+![SwitchLLM overview](repo-assets/switchllm-hero.svg)
 
-[![CI](https://github.com/tashfeenahmed/freellmapi/actions/workflows/ci.yml/badge.svg)](https://github.com/tashfeenahmed/freellmapi/actions/workflows/ci.yml)
-[![GitHub stars](https://img.shields.io/github/stars/tashfeenahmed/freellmapi?style=flat&logo=github&color=yellow)](https://github.com/tashfeenahmed/freellmapi/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
-[![Docker image](https://img.shields.io/badge/ghcr.io-freellmapi-2496ED?logo=docker&logoColor=white)](https://github.com/tashfeenahmed/freellmapi/pkgs/container/freellmapi)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tashfeenahmed/freellmapi)
+[![License: MIT](https://img.shields.io/badge/License-MIT-8b5cf6.svg)](./LICENSE) ![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-22d3ee) ![OpenAI compatible](https://img.shields.io/badge/API-OpenAI%20compatible-8b5cf6)
 
-**[freellmapi.co](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=repository&utm_content=readme_top)** · browse the full catalog: 474 model families, 635 free endpoints
+**SwitchLLM** brings the free tiers of supported AI providers behind a single OpenAI-compatible endpoint. Add your own provider keys, then use `auto` to route requests to an available model. Keys are encrypted locally; automatic fallback helps when a provider hits a limit.
+
+[Quick start](#quick-start) · [Use in a project](#works-with-openai-compatible-clients) · [API example](#using-the-api) · [Original project](https://github.com/tashfeenahmed/freellmapi)
+
+**Important:** The upstream catalog's ~7.4B tokens/month figure is an *aggregate estimate across listed providers and free tiers*, **not** a personal token balance, guaranteed allocation, or tokens issued by SwitchLLM. Your usable quota depends on your own provider accounts, keys, model limits, region, and changing provider terms. [How the estimate works ↓](#what-does-74b-tokens-mean)
 
 **English** · [简体中文](README.zh-cn.md)
-
-<p align="center">
-  <a href="https://github.com/tashfeenahmed/freellmapi/releases/latest"><img src="repo-assets/badges/macos.svg" height="48" alt="Download for macOS"></a>
-  <a href="https://github.com/tashfeenahmed/freellmapi/releases/latest"><img src="repo-assets/badges/windows.svg" height="48" alt="Download for Windows"></a>
-  <a href="docs/en/install/01-install.md#docker-compose"><img src="repo-assets/badges/docker.svg" height="48" alt="Self-host with Docker"></a>
-  <a href="https://play.google.com/store/apps/details?id=co.freellmapi.app"><img src="repo-assets/badges/play-store.svg" height="48" alt="Get it on Google Play"></a>
-  <a href="https://apps.apple.com/app/id6804648934"><img src="repo-assets/badges/app-store.svg" height="48" alt="Download on the App Store"></a>
-</p>
-
-![FreeLLMAPI dashboard — Models page with the monthly token budget](repo-assets/github-hero.png)
-
-
-Your router updates its own model catalog from a signed feed: new free models, quota changes, and compatibility fixes land without a `git pull`. Free installs get the monthly snapshot, so a model reaches them 30 days after it joins the live feed; premium routers get it the same day.
-**[Go live at freellmapi.co](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=premium&utm_content=readme_top#pricing)** ($19/yr, cancel anytime).
 
 </div>
 
@@ -38,17 +23,17 @@ Your router updates its own model catalog from a signed feed: new free models, q
 ## Contents
 
 - [Why this exists](#why-this-exists)
+- [What does 7.4B tokens mean?](#what-does-74b-tokens-mean)
 - [Supported providers](#supported-providers)
 - [Compatible CLIs & coding agents](#compatible-clis--coding-agents)
-- [How it compares](#how-it-compares)
 - [Features](#features)
 - [Quick start](#quick-start)
 - [Desktop app](#desktop-app)
 - [Works with OpenAI-compatible clients](#works-with-openai-compatible-clients)
 - [Languages](#languages)
-- [Premium (live catalog)](#premium-live-catalog)
+- [Catalog updates](#catalog-updates)
 - [Using the API](#using-the-api)
-- [Screenshots](#screenshots)
+- [Visual tour](#visual-tour)
 - [How it works](#how-it-works)
 - [FAQ](#faq)
 - [Limitations](#limitations)
@@ -59,13 +44,24 @@ Your router updates its own model catalog from a signed feed: new free models, q
 
 ## Why this exists
 
-Every serious AI lab now offers a free tier, a few million tokens a month, a few thousand requests a day. On its own each tier is a toy. Stacked together, they add up to roughly **7.4 billion tokens per month** of working inference capacity, across **474 model families / 635 provider endpoints** from small-and-fast to reasonably capable.
+Some AI providers offer free tiers, each with its own quota and conditions. SwitchLLM gives you one endpoint for the providers **you configure**, so your app does not have to manage every SDK and rate limit itself.
 
-The problem is that stacking them by hand is painful: thirty-four different SDKs, thirty-four different rate limits, thirty-four places a request can fail. FreeLLMAPI collapses that into one OpenAI-compatible endpoint. Point any OpenAI client library at your local server, and it routes transparently across whichever providers you've added keys for.
+Point an OpenAI-compatible client at your local SwitchLLM server. It routes across healthy models backed by your keys and can fail over when one is rate-limited.
 
-And the free-tier landscape shifts weekly: providers launch models, retire them, and change quotas without notice. FreeLLMAPI tracks all of that for you. The router pulls a signed model catalog from [freellmapi.co](https://freellmapi.co) on its own, so your install keeps up without a `git pull`. See [Premium (live catalog)](#premium-live-catalog) for how fast it keeps up.
+The free-tier landscape shifts: providers launch models, retire them, and change quotas. SwitchLLM pulls a signed model catalog from the [upstream catalog site](https://freellmapi.co), with the timing described under [Catalog updates](#catalog-updates).
 
-![The free tier, stacked — ~7.4B tokens of free inference per month across 34 providers](repo-assets/free-tier.png)
+## What does 7.4B tokens mean?
+
+The [original project's published catalog](https://github.com/tashfeenahmed/freellmapi) lists roughly **7.4 billion tokens/month of combined free-tier capacity** across many provider/model endpoints. That is a catalog-wide estimate, **not 7.4B tokens credited to your account**. You only have access to the providers for which you have valid accounts and keys; some limits are request-based, shared across models, or unpublished. Provider limits can change at any time. The dashboard shows your configured providers and observed usage; check each provider's current terms before relying on a quota.
+
+| You get | You do not get |
+| --- | --- |
+| One local API key for the router | An automatic 7.4B-token balance |
+| Routing across providers you connect | Every listed model without its provider key |
+| Visibility into available models and usage | A guarantee that free tiers remain free or available |
+
+![Catalog-wide estimate versus actual access](repo-assets/switchllm-capacity.svg)
+
 
 ## Supported providers
 
@@ -99,7 +95,7 @@ And the free-tier landscape shifts weekly: providers launch models, retire them,
 
 Plus a **custom** provider — point chat, embedding, image, or audio models at any OpenAI-compatible endpoint (llama.cpp, LM Studio, vLLM, a local Ollama, or a remote gateway) from the Keys page.
 
-The full, always-current list lives at **[freellmapi.co/models](https://freellmapi.co/models.html)** with per-model rate limits, context windows, and free-token budgets.
+The full, always-current list lives at **[upstream catalog site/models](https://freellmapi.co/models.html)** with per-model rate limits, context windows, and free-token budgets.
 
 ## Compatible CLIs & coding agents
 
@@ -140,19 +136,12 @@ The full, always-current list lives at **[freellmapi.co/models](https://freellma
 
 </div>
 
-Most of these configure themselves with one command — `npx freellmapi setup-claude`, `setup-codex`, `setup-aider`, `setup-dsh` (DeepSeek Harness), and eleven more generators that fetch your live catalog, back up existing config, and never clobber what's already there. Claude Code and Codex also get zero-persistence launchers (`freellmapi launch`, `freellmapi launch-codex`) that inject credentials into the child process only. Zed and JetBrains AI connect through the opt-in [Ollama emulation](docs/en/clients/01-agent-clients.md#ollama-clients); Gemini CLI speaks its native wire on `/v1beta`.
+The included CLI can generate configuration for Claude Code, Codex, Aider, and other agents from your live model catalog. Run it from a built source checkout with `node cli/dist/index.js` (for example, `node cli/dist/index.js setup-codex --help`). Session-only launchers can inject credentials into Claude Code and Codex without saving them in those clients' config files. Zed and JetBrains AI connect through the opt-in [Ollama emulation](docs/en/clients/01-agent-clients.md#ollama-clients); Gemini CLI speaks its native wire on `/v1beta`.
 
 Per-tool recipes, the setup CLI reference, revocable URL tokens for headerless clients, and the MCP server all live in **[Clients & coding agents →](docs/en/clients/01-agent-clients.md)**
 
-## How it compares
-
-![Feature comparison against OpenRouter, LiteLLM, and Portkey](repo-assets/comparison.png)
-
-Based on public documentation, July 2026 — corrections welcome.
-
 ## Features
 
-![Feature overview](repo-assets/features.png)
 
 - **Every OpenAI-style surface** — `/v1/chat/completions`, `/v1/responses` (what Codex CLI needs), `/v1/completions` (editor ghost-text autocomplete), `/v1/images/generations`, `/v1/videos/generations`, `/v1/audio/speech`, `/v1/audio/transcriptions`, `/v1/embeddings`, and `/v1/models` — streaming and non-streaming, from the official SDKs or any OpenAI-compatible client. [API reference →](docs/en/api/01-rest-api.md)
 - **Anthropic Messages API** — `/v1/messages` speaks Anthropic's wire format over the same router, so **Claude Code** and the official Anthropic SDKs run against your free pool. [Details →](docs/en/api/01-rest-api.md#anthropic--claude-clients)
@@ -163,12 +152,12 @@ Based on public documentation, July 2026 — corrections welcome.
 - **Smart routing, six strategies** — live per-model speed/capability/reliability scores rank your chain; automatic fallover retries the next model on 429/5xx with cooldowns and key rotation. [Routing in detail →](docs/en/architecture/00-high-level-index.md#how-it-works)
 - **Unified models & profiles** — the same model on several providers collapses into one entry with strict in-group failover; named fallback-chain profiles (a coding chain, a vision chain) switch from the dashboard or per request via `auto:<profile>`, and custom chains can be renamed in place from the chain manager.
 - **Per-key rate tracking** — RPM/RPD/TPM/TPD counters per `(platform, model, key)` that learn providers' reported ceilings, so routing always stays under every cap.
-- **Self-updating model catalog** — the router syncs a signed catalog from freellmapi.co twice a day: new models, quota changes, and provider quirk fixes land automatically. Free installs track the monthly snapshot, which each model joins 30 days after it lands in the live feed; premium routers get it same-day. [Premium →](#premium-live-catalog)
+- **Self-updating model catalog** — the router checks the signed upstream catalog for model, quota, and compatibility updates; free installs receive the monthly snapshot. [Catalog updates →](#catalog-updates)
 - **Sticky sessions & context handoff** — conversations stay on one model for 30 minutes; an optional compact handoff note keeps the thread coherent when a mid-chat switch does happen. [Details →](docs/en/clients/01-agent-clients.md#context-handoff)
 - **Prompt compression (opt-in)** — a shared, fail-open request pipeline can deduplicate prompts, filter tool output, compact repeated JSON, and trim stale context before cache lookup and routing. [Details →](docs/en/compression/01-compression-pipeline.md)
-- **Encrypted keys, one token out** — provider keys are AES-256-GCM encrypted in SQLite and decrypted in-memory per request; your apps only ever see a single unified `freellmapi-…` bearer token.
+- **Encrypted keys, one token out** — provider keys are AES-256-GCM encrypted in SQLite and decrypted in-memory per request; your apps only ever see a single unified `switchllm-…` bearer token.
 - **Admin dashboard & analytics** — React UI to manage keys, reorder the chain, run a playground, and read p50/p95/TTFT analytics over 24h–90d windows; login-gated, dark/light themes, [60 languages](#languages).
-- **ChatGPT-ready MCP server & interactive docs** — ChatGPT and other MCP clients can call FreeLLMAPI inference, list usable models, inspect provider health/usage/cache/routing metadata, and manage the routing strategy over `/mcp`; a dependency-free OpenAPI viewer lives at `/v1/docs`. [ChatGPT and coding agents →](docs/en/clients/01-agent-clients.md#mcp-server)
+- **ChatGPT-ready MCP server & interactive docs** — ChatGPT and other MCP clients can call SwitchLLM inference, list usable models, inspect provider health/usage/cache/routing metadata, and manage the routing strategy over `/mcp`; a dependency-free OpenAPI viewer lives at `/v1/docs`. [ChatGPT and coding agents →](docs/en/clients/01-agent-clients.md#mcp-server)
 - **Ops niceties** — opt-in response cache, encrypted DB backups, periodic key health checks, bulk key import/export, declarative startup config. [Install & deploy →](docs/en/install/01-install.md)
 - **Runs anywhere Node 20+ runs** — Windows, macOS, Linux servers, or a small ARM SBC (Raspberry Pi included). ~40 MB RSS at idle behind PM2 / systemd / whatever supervisor you prefer.
 
@@ -176,17 +165,19 @@ The scope is deliberately narrow — see [what's not supported yet](docs/en/arch
 
 ## Quick start
 
-**One-liner** (Docker required — sets up `~/freellmapi`, generates an encryption key, pulls the image, and starts the container):
+**Run SwitchLLM from source** (Node.js 20.18+ and npm 10+):
 
 ```bash
-curl -fsSL https://freellmapi.co/install.sh | bash
+npm ci
+npm run build
+node server/dist/index.js
 ```
 
-Prefer to read before you pipe to bash? [The script is here](https://freellmapi.co/install.sh). Re-running it is safe: your `.env` (and encryption key) is preserved and the container updates to `:latest`.
+Open **http://localhost:3001** (default port), create your local dashboard account, then add your own provider keys under **Keys**. The server must remain running while your apps use the API. For production, set a strong `ENCRYPTION_KEY` in a private `.env` file; see [.env.example](.env.example) and the [installation guide](docs/en/install/01-install.md).
 
-Open http://localhost:3001, add your provider keys on the **Keys** page, reorder the **Fallback Chain** to taste, and grab your unified API key from the **Keys** page header. That unified key is what you point your OpenAI SDK at.
+If port 3001 is already in use, set `PORT=3011` (or another available port) in a private `.env` file and use that port in the URLs below.
 
-On Windows, the easiest path is the desktop **[`.exe` installer from Releases](https://github.com/tashfeenahmed/freellmapi/releases/latest)** (below). On Android, see the experimental [Termux guide](docs/en/install/02-android-termux.md).
+The [upstream install script](https://freellmapi.co/install.sh) and [upstream releases](https://github.com/tashfeenahmed/freellmapi/releases/latest) install **the original FreeLLMAPI**, not this SwitchLLM fork. Build this fork from source for SwitchLLM branding. On Android, see the experimental [Termux guide](docs/en/install/02-android-termux.md).
 
 Everything else — Docker Compose, local development, declarative startup config, production builds, LAN access, and backups — is in **[docs/en/install/01-install.md](docs/en/install/01-install.md)**.
 
@@ -194,9 +185,8 @@ Everything else — Docker Compose, local development, declarative startup confi
 
 A native menu-bar app lives in [`desktop/`](./desktop): the entire router + dashboard running locally from your tray, with a glass popover showing live request stats.
 
-![FreeLLMAPI desktop app](repo-assets/desktop.png)
 
-**[Download from Releases](https://github.com/tashfeenahmed/freellmapi/releases/latest)** — the macOS `.dmg` and the Windows `.exe` installer are attached to every release. No account or password to set up: the only credential you need is the unified API key from the tray popover. Build-from-source steps and where your data lives: [docs/en/install/01-install.md#desktop-app](docs/en/install/01-install.md#desktop-app).
+The desktop source is included, but **this fork does not currently publish SwitchLLM-branded installers**. Build-from-source steps and data locations: [docs/en/install/01-install.md#desktop-app](docs/en/install/01-install.md#desktop-app). [Upstream releases](https://github.com/tashfeenahmed/freellmapi/releases/latest) are branded FreeLLMAPI.
 
 For macOS 12 Monterey or later, choose **arm64 (Apple Silicon)** or **x64 (Intel)**. Both Mac builds also include a ZIP download.
 
@@ -205,7 +195,7 @@ For macOS 12 Monterey or later, choose **arm64 (Apple Silicon)** or **x64 (Intel
 Anything that can target an OpenAI-compatible base URL works: set it to `http://localhost:3001/v1` with the unified key from the dashboard. **Claude Code**, **Codex CLI**, **Cline / Roo Code**, **Continue** (including inline autocomplete), **Aider**, **opencode**, and **Cursor** each have a short recipe in **[docs/en/clients/01-agent-clients.md](docs/en/clients/01-agent-clients.md)** — and the router doubles as an MCP server your agents can introspect mid-session.
 
 **ChatGPT** connects to the same local router through a private Secure MCP Tunnel. The
-`ask_freellmapi` MCP tool routes a ChatGPT-requested task through `/v1/chat/completions` and
+`ask_switchllm` MCP tool routes a ChatGPT-requested task through `/v1/chat/completions` and
 returns the answer with served-model, fallback, cache, execution, and token metadata. Base
 URL and bearer authentication live in the tunnel-client configuration; the default model is
 set with `MCP_INFERENCE_DEFAULT_MODEL` (`auto` when unset). No key belongs in Git or in the
@@ -214,12 +204,12 @@ MCP URL. **[ChatGPT setup →](docs/en/clients/01-agent-clients.md#chatgpt-priva
 The fastest setup is generated from the models available on your live server:
 
 ```bash
-npx freellmapi setup-claude --url http://localhost:3001 --api-key <unified-key>
+node cli/dist/index.js setup-claude --url http://localhost:3001 --api-key <unified-key>
 ```
 
-Every generator supports `--dry-run`, creates a timestamped backup before changing an existing file, and merges into the user's configuration. Launchers keep credentials out of config files entirely: `npx freellmapi launch` for Claude Code and `npx freellmapi launch-codex` for Codex.
+Every generator supports `--dry-run`, creates a timestamped backup before changing an existing file, and merges into the user's configuration. Launchers keep credentials out of config files entirely: `node cli/dist/index.js launch` for Claude Code and `node cli/dist/index.js launch-codex` for Codex.
 
-Provider keys can be managed from the terminal too, with a dashboard session token (`FREELLMAPI_DASHBOARD_TOKEN` or `--token`): `npx freellmapi keys add|list|remove|test <platform>`, where `keys test` re-checks stored keys. See [cli/README.md](cli/README.md#provider-keys).
+Provider keys can be managed from the terminal too, with a dashboard session token (`SWITCHLLM_DASHBOARD_TOKEN` or `--token`): `node cli/dist/index.js keys add|list|remove|test <platform>`, where `keys test` re-checks stored keys. See [cli/README.md](cli/README.md#provider-keys).
 
 | Agent | Automated setup | Base URL |
 | --- | --- | --- |
@@ -239,7 +229,7 @@ Provider keys can be managed from the terminal too, with a dashboard session tok
 | Hermes Agent | `setup-hermes` | `/v1` |
 | Cursor | `setup-cursor` guide | public `/v1` URL |
 
-FreeLLMAPI is local-first and single-user by design. Your provider keys stay in your SQLite database, encrypted at rest, and requests go from your machine to the upstream providers you enabled.
+SwitchLLM is local-first and single-user by design. Your provider keys stay in your SQLite database, encrypted at rest, and requests go from your machine to the upstream providers you enabled.
 
 ## Languages
 
@@ -265,38 +255,25 @@ add a language, copy `en.json`, translate the values, and register the locale in
 strings); `npm test` checks every locale for key/placeholder parity — PRs
 welcome.
 
-## Premium (live catalog)
+## Catalog updates
 
 The router keeps its model catalog fresh on its own: it pulls a signed catalog
-from [freellmapi.co](https://freellmapi.co) twice a day and applies new models,
+from [upstream catalog site](https://freellmapi.co) twice a day and applies new models,
 quota changes, and provider quirk fixes to your local DB. Your own
 enable/disable choices and custom providers are never touched, and every
 download is verified against a pinned Ed25519 key before it is applied.
 
-The catalog currently tracks **34 providers**, **474 model families**, **635
-free provider/model endpoints** (584 chat, 41 embeddings, 7 transcription, 3
-video), and roughly **7.4 billion tokens per month** of listed free-tier
-capacity. Browse the full set at
-**[freellmapi.co/models](https://freellmapi.co/models.html)**.
+The upstream catalog has published figures of **34 providers**, **474 model
+families**, **635 free provider/model endpoints**, and roughly **7.4 billion
+tokens per month** of aggregate listed free-tier capacity. These are catalog
+estimates, not a personal balance; counts and limits can change. Browse the full set at
+**[upstream catalog site/models](https://freellmapi.co/models.html)**.
 
-Free installs pull the same signed catalog, but from the monthly snapshot: a
-model joins it 30 days after it lands in the live feed, so the free build
-currently sits about 303 models behind. Nothing expires and nothing is
-crippled — it just arrives later.
-
-Premium keeps that signed catalog live on every router you run. When a provider
-launches a strong free model, quietly tightens a quota, or breaks a wire format,
-live-feed routers receive the update the same day we ship it.
-
-**[Go live at freellmapi.co →](https://freellmapi.co/?utm_source=github&utm_medium=readme&utm_campaign=premium&utm_content=readme_bottom#pricing)**
-
-- $19/year or $49 once, lifetime. Stripe checkout; cancel anytime, self-serve.
-- One `fla_` key covers every router you run: desktop, homelab, Raspberry Pi.
-- Activate in the dashboard under **Premium**; cancel or manage billing
-  self-serve at [freellmapi.co/manage](https://freellmapi.co/manage).
-- The router itself stays MIT-licensed and fully free, forever. Premium is only
-  the live feed, and it's what funds the daily model testing and catalog
-  maintenance that keeps the catalog working.
+Free installs pull the monthly snapshot; upstream says newly listed models join
+that snapshot after a delay. Live-feed access is an upstream service, separate
+from this fork. For current availability and terms, consult the
+[upstream catalog site](https://freellmapi.co). SwitchLLM does not issue token
+credits or operate that catalog service.
 
 The catalog server never sees your prompts, completions, or provider keys — the
 router stays fully self-hosted either way.
@@ -308,48 +285,33 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:3001/v1",
-    api_key="freellmapi-your-unified-key",
+    api_key="switchllm-your-unified-key",
 )
 
-resp = client.chat.completions.create(
+raw = client.chat.completions.with_raw_response.create(
     model="auto",  # let the router pick; or "auto:fast", "auto:smart", a profile, or a model id
     messages=[{"role": "user", "content": "Summarise the fall of Rome in one sentence."}],
 )
+resp = raw.parse()
 print(resp.choices[0].message.content)
-print("Routed via:", resp.headers.get("x-routed-via"))
+print("Routed via:", raw.headers.get("x-routed-via"))
 ```
 
 Streaming, the `auto:*` routing strategies, tool calling, vision input, Gemini Google Search grounding, embeddings, and the Anthropic Messages surface — with curl and Python examples for each — are all in **[docs/en/api/01-rest-api.md](docs/en/api/01-rest-api.md)**. Every response carries an `X-Routed-Via: <platform>/<model>` header so you can see which provider actually served it.
 
-## Screenshots
+## Visual tour
 
-### Models
+The illustrations below explain the flow; they are not live dashboard screenshots.
 
-Pick a routing strategy and watch the monthly token budget fill across the whole provider fleet. Every model shows live reliability, speed, and intelligence scores — the order below is how requests route right now.
+![Apps connect to the SwitchLLM router, then connected providers](repo-assets/switchllm-hero.svg)
 
-![Models page](repo-assets/models.png)
+![The catalog-wide token estimate differs from your own available quota](repo-assets/switchllm-capacity.svg)
 
-### Keys
+In the live dashboard, **Models** lets you choose a routing strategy, **Keys** manages provider credentials and your unified API key, **Playground** sends test prompts, and **Analytics** shows request and token usage. Actual screens and available models depend on your installation and connected providers.
 
-Manage provider credentials and grab the unified API key your apps connect with. Each key shows a status dot and when it was last health-checked.
-
-![Keys page](repo-assets/keys.png)
-
-### Playground
-
-Send a chat completion through the router and see which provider served it, with the model ID and latency printed right on the message. Attach files by button, drag-and-drop, or paste: images (PNG/JPEG/WebP/GIF) are downscaled in the browser and sent as image content parts to a vision-capable model, and text files (TXT/MD/CSV/JSON/LOG) are inlined into the prompt as fenced blocks.
-
-![Playground page](repo-assets/playground.png)
-
-### Analytics
-
-Request volume, success rate, tokens in and out, average latency, and per-provider breakdowns over 24h / 7d / 30d / 90d windows.
-
-![Analytics page](repo-assets/analytics.png)
 
 ## How it works
 
-![One request in, the best free model out — the fallback chain with live scores, cooldowns, and quota tracking](repo-assets/router-flow.png)
 
 One request in, the best free model out: the router picks the highest-priority model with a healthy key that's under all its rate limits, decrypts the key in memory, and calls the provider — on a 429/5xx it cools that key down and retries the next model in your chain. The component walkthrough, routing internals, and operational details live in **[docs/en/architecture/00-high-level-index.md](docs/en/architecture/00-high-level-index.md)**.
 
@@ -357,11 +319,11 @@ One request in, the best free model out: the router picks the highest-priority m
 
 **Do I need a password?** Not for the desktop app — the dashboard signs itself in with a hidden local account, so there is nothing to set up and nothing to forget. Open it from the tray icon → **Open Dashboard**. Server installs (Docker, one-liner, `npm run dev`) do have an email + password account.
 
-**I forgot the password on a server install.** Click **Forgot password?** on the login page. There is no email to send a link to, so the one-time code is printed to the server log — read it with `docker compose logs -f freellmapi` (or in the terminal running the server, or in the desktop log file), then enter it on the reset form. The code lasts 15 minutes.
+**I forgot the password on a server install.** Click **Forgot password?** on the login page. There is no email to send a link to, so the one-time code is printed to the server log — read it with `docker compose logs -f switchllm` (or in the terminal running the server, or in the desktop log file), then enter it on the reset form. The code lasts 15 minutes.
 
-**Where are the logs?** In the container log for Docker, in the terminal for a source run, and in `<data dir>/logs/freeapi.log` for the desktop app — reachable from the tray menu's **Open Logs Folder**.
+**Where are the logs?** In the container log for Docker, in the terminal for a source run, and in `<data dir>/logs/switchllm.log` for the desktop app — reachable from the tray menu's **Open Logs Folder**.
 
-**How do I uninstall?** Remove the app (Trash on macOS, *Settings → Apps* on Windows, `docker compose down -v` for Docker), then delete the data directory: `%APPDATA%\FreeLLMAPI\`, `~/Library/Application Support/FreeLLMAPI/`, or `~/.config/FreeLLMAPI/`. Uninstalling never touches that folder on its own.
+**How do I uninstall?** Remove the app (Trash on macOS, *Settings → Apps* on Windows, `docker compose down -v` for Docker), then delete the data directory: `%APPDATA%\SwitchLLM\`, `~/Library/Application Support/SwitchLLM/`, or `~/.config/SwitchLLM/`. Uninstalling never touches that folder on its own.
 
 Longer answers, per install method: **[docs/en/install/01-install.md#faq-passwords-logs-uninstall](docs/en/install/01-install.md#faq-passwords-logs-uninstall)**.
 
@@ -514,7 +476,7 @@ Contributors very welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev lo
 
 ## Disclaimer
 
-**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of FreeLLMAPI, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
+**This project is for personal experimentation and learning, not production.** Free tiers exist so developers can prototype against them; they aren't a stable, supported inference substrate and shouldn't be treated as one. If you build something real on top of SwitchLLM, swap in a paid API before you ship. Your relationship with each upstream provider is governed by the terms you accepted when you created your account — those terms still apply when the traffic is proxied through this project, and you're responsible for complying with them.
 
 How each provider's ToS views a personal, single-user proxy — reviewed provider by provider in May 2026 — is in [docs/en/architecture/00-high-level-index.md#terms-of-service-review](docs/en/architecture/00-high-level-index.md#terms-of-service-review).
 

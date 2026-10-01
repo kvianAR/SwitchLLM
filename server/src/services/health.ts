@@ -3,7 +3,7 @@ import { resolveProvider } from '../providers/index.js';
 import { decrypt } from '../lib/crypto.js';
 import { decryptProxyUrl } from '../lib/key-proxy.js';
 import { withKeyProxy } from '../lib/proxy.js';
-import type { Platform, KeyStatus } from '@freellmapi/shared/types.js';
+import type { Platform, KeyStatus } from '@switchllm/shared/types.js';
 import { inferQuotaPoolKey } from './provider-quota.js';
 import { updateDegradationState } from './degradation.js';
 import type { Scheduler } from '../lib/scheduler.js';
@@ -139,7 +139,7 @@ export async function checkKeyHealth(keyId: number): Promise<KeyStatus> {
     // Include platform + base_url so a flapping CloudFront edge or DNS failure is
     // attributable to the responsible provider in one log read. The leading
     // "[Health] Key N (" prefix is preserved so the 12-hourly crash watchdog
-    // (cron bff5ae167d28) that scrapes /tmp/freellmapi.log for these lines
+    // (cron bff5ae167d28) that scrapes /tmp/switchllm.log for these lines
     // continues to match unchanged.
     const lastError = sanitizeProviderErrorMessage(err?.message ?? err);
     console.error(

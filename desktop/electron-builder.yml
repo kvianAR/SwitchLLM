@@ -1,5 +1,5 @@
-appId: com.freellmapi.desktop
-productName: FreeLLMAPI
+appId: com.switchllm.desktop
+productName: SwitchLLM
 directories:
   output: dist-electron
 files:

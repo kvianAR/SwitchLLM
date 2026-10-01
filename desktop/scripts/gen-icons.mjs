@@ -1,5 +1,4 @@
-// Generates the desktop icons from the brand mark (client/public/favicon.svg
-// design: dot inside a broken routing ring) without any image dependencies —
+// Generates the desktop icons from the SwitchLLM routing arrows mark without any image dependencies —
 // pure-Node PNG encoding (zlib IDAT + hand-rolled CRC32), 4x supersampled.
 //
 // Outputs:
@@ -101,24 +100,13 @@ function render(size, shapes) {
   return encodePng(img, size, size);
 }
 
-const dist = (x, y, cx, cy) => Math.hypot(x - cx, y - cy);
-
-// Ring with a gap. gapCenter/gapWidth in degrees, standard math orientation.
-function ringCover(x, y, cx, cy, radius, stroke, gapCenterDeg, gapWidthDeg) {
-  const d = Math.abs(dist(x, y, cx, cy) - radius);
-  if (d > stroke / 2) return 0;
-  let ang = (Math.atan2(cy - y, x - cx) * 180) / Math.PI; // y-flip: screen→math
-  let delta = Math.abs(((ang - gapCenterDeg + 540) % 360) - 180);
-  return delta < gapWidthDeg / 2 ? 0 : 1;
-}
-
-const circle = (cx, cy, r, color) => ({
+const segment = (x1, y1, x2, y2, width, color) => ({
   color,
-  cover: (x, y) => (dist(x, y, cx, cy) <= r ? 1 : 0),
-});
-const ring = (cx, cy, r, stroke, gapC, gapW, color) => ({
-  color,
-  cover: (x, y) => ringCover(x, y, cx, cy, r, stroke, gapC, gapW),
+  cover: (x, y) => {
+    const dx = x2 - x1, dy = y2 - y1;
+    const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(x - x1 - t * dx, y - y1 - t * dy) <= width / 2 ? 1 : 0;
+  },
 });
 const roundedRect = (x0, y0, x1, y1, rad, color) => ({
   color,
@@ -134,21 +122,29 @@ const roundedRect = (x0, y0, x1, y1, rad, color) => ({
 // Slightly chunkier than the 64px favicon so it reads at 16px.
 const BLACK = [0, 0, 0, 1];
 const trayShapes = [
-  ring(0.5, 0.5, 0.36, 0.115, 45, 80, BLACK), // gap top-right, like the mark
-  circle(0.5, 0.5, 0.185, BLACK),
+  segment(0.18, 0.34, 0.79, 0.34, 0.12, BLACK),
+  segment(0.79, 0.34, 0.63, 0.19, 0.12, BLACK),
+  segment(0.79, 0.34, 0.63, 0.49, 0.12, BLACK),
+  segment(0.82, 0.66, 0.21, 0.66, 0.12, BLACK),
+  segment(0.21, 0.66, 0.37, 0.51, 0.12, BLACK),
+  segment(0.21, 0.66, 0.37, 0.81, 0.12, BLACK),
 ];
 fs.writeFileSync(path.join(assets, 'trayTemplate.png'), render(16, trayShapes));
 fs.writeFileSync(path.join(assets, 'trayTemplate@2x.png'), render(32, trayShapes));
 
 // ── app icon (1024, HIG grid: art occupies ~824/1024 rounded rect) ────────
-const BG = [0x09 / 255, 0x09 / 255, 0x0b / 255, 1]; // #09090b
-const FG = [0xfa / 255, 0xfa / 255, 0xfa / 255, 1]; // #fafafa
-const FG40 = [0xfa / 255, 0xfa / 255, 0xfa / 255, 0.4];
+const BG = [0x11 / 255, 0x11 / 255, 0x25 / 255, 1];
+const VIOLET = [0x8b / 255, 0x5c / 255, 0xf6 / 255, 1];
+const CYAN = [0x22 / 255, 0xd3 / 255, 0xee / 255, 1];
 const inset = 100 / 1024, rectR = 180 / 1024;
 const appShapes = [
   roundedRect(inset, inset, 1 - inset, 1 - inset, rectR, BG),
-  ring(0.5, 0.5, 232 / 1024, 45 / 1024, 45, 80, FG40),
-  circle(0.5, 0.5, 122 / 1024, FG),
+  segment(0.27, 0.40, 0.73, 0.40, 0.058, VIOLET),
+  segment(0.73, 0.40, 0.61, 0.29, 0.058, VIOLET),
+  segment(0.73, 0.40, 0.61, 0.51, 0.058, VIOLET),
+  segment(0.73, 0.60, 0.27, 0.60, 0.058, CYAN),
+  segment(0.27, 0.60, 0.39, 0.49, 0.058, CYAN),
+  segment(0.27, 0.60, 0.39, 0.71, 0.058, CYAN),
 ];
 fs.writeFileSync(path.join(assets, 'appicon_1024.png'), render(1024, appShapes));
 

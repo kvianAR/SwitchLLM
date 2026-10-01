@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="310" viewBox="0 0 1100 310" role="img" aria-labelledby="title desc">
+  <title id="title">The 7.4 billion token estimate explained</title>
+  <desc id="desc">Combined catalog capacity is not an individual account balance; actual access requires provider accounts and keys.</desc>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#17132f"/><stop offset="1" stop-color="#10364a"/></linearGradient></defs>
+  <rect width="1100" height="310" rx="24" fill="url(#bg)"/>
+  <g font-family="Inter, Arial, sans-serif">
+    <text x="45" y="58" fill="#f8fafc" font-size="30" font-weight="800">What does “~7.4B tokens/month” mean?</text>
+    <rect x="45" y="92" width="465" height="159" rx="18" fill="#35245e" stroke="#a78bfa"/>
+    <text x="69" y="139" fill="#ddd6fe" font-size="20" font-weight="700">CATALOG-WIDE ESTIMATE</text>
+    <text x="69" y="184" fill="#f8fafc" font-size="38" font-weight="800">~7.4B / month</text>
+    <text x="69" y="219" fill="#cbd5e1" font-size="16">Across many providers and free tiers</text>
+    <path d="M535 170h55m-15-12 15 12-15 12" stroke="#22d3ee" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="615" y="92" width="440" height="159" rx="18" fill="#173c50" stroke="#22d3ee"/>
+    <text x="639" y="139" fill="#a5f3fc" font-size="20" font-weight="700">YOUR ACTUAL ACCESS</text>
+    <text x="639" y="181" fill="#f8fafc" font-size="25" font-weight="800">Your keys + provider limits</text>
+    <text x="639" y="219" fill="#cbd5e1" font-size="16">Not a guaranteed token balance</text>
+    <text x="45" y="285" fill="#a5b4fc" font-size="15">Provider quotas, availability, and terms can change. Check each provider before relying on a limit.</text>
+  </g>
+</svg>

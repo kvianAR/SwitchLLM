@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-The catalog sync keeps the local model catalog in step with the published catalog at `freellmapi.co`. It runs **twice daily** (and on demand), fetches a **signed catalog**, verifies it against a **pinned Ed25519 public key**, and applies it **transactionally** to the local SQLite database.
+The catalog sync keeps the local model catalog in step with the published catalog at `upstream catalog site`. It runs **twice daily** (and on demand), fetches a **signed catalog**, verifies it against a **pinned Ed25519 public key**, and applies it **transactionally** to the local SQLite database.
 
 ### Two Tiers
 

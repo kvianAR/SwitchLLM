@@ -76,7 +76,7 @@ function claude(ctx: GenerateContext): Generation {
       ctx.profile === 'default'
         ? 'Claude Code will read this configuration automatically.'
         : `Launch with CLAUDE_CONFIG_DIR=${directory} claude`,
-      'For zero-persistence credentials, prefer: freellmapi launch',
+      'For zero-persistence credentials, prefer: switchllm launch',
     ],
   };
 }
@@ -85,11 +85,11 @@ function codex(ctx: GenerateContext): Generation {
   const model = primaryModel(ctx.models, ctx.requestedModelId);
   const compact = Math.max(16_000, Math.floor(contextWindow(model) * 0.9));
   const providerTable = [
-    '[model_providers.freellmapi]',
-    'name = "FreeLLMAPI"',
+    '[model_providers.switchllm]',
+    'name = "SwitchLLM"',
     `base_url = ${JSON.stringify(v1Url(ctx.url))}`,
     'wire_api = "responses"',
-    'env_key = "FREELLMAPI_API_KEY"',
+    'env_key = "SWITCHLLM_API_KEY"',
     'requires_openai_auth = false',
   ];
   // Codex reads exactly one file, ~/.codex/config.toml. Named profiles are
@@ -97,25 +97,25 @@ function codex(ctx: GenerateContext): Generation {
   // `codex --profile NAME`; separate per-profile files are never read.
   const content = ctx.profile === 'default'
     ? [
-      '# freellmapi:start',
+      '# switchllm:start',
       `model = ${JSON.stringify(model.id)}`,
-      'model_provider = "freellmapi"',
+      'model_provider = "switchllm"',
       `model_context_window = ${contextWindow(model)}`,
       `model_auto_compact_token_limit = ${compact}`,
       'tool_output_token_limit = 20000',
       '',
       ...providerTable,
-      '# freellmapi:end',
+      '# switchllm:end',
       '',
     ]
     : [
-      '# freellmapi:start',
+      '# switchllm:start',
       ...providerTable,
       '',
       `[profiles.${/^[A-Za-z0-9_-]+$/.test(ctx.profile) ? ctx.profile : JSON.stringify(ctx.profile)}]`,
       `model = ${JSON.stringify(model.id)}`,
-      'model_provider = "freellmapi"',
-      '# freellmapi:end',
+      'model_provider = "switchllm"',
+      '# switchllm:end',
       '',
     ];
   return {
@@ -125,7 +125,7 @@ function codex(ctx: GenerateContext): Generation {
       content: content.join('\n'),
     }],
     notes: [
-      'Export FREELLMAPI_API_KEY before running codex; the key is not written to config.toml.',
+      'Export SWITCHLLM_API_KEY before running codex; the key is not written to config.toml.',
       ...(ctx.profile === 'default'
         ? []
         : [`Activate this profile with: codex --profile ${ctx.profile}`]),
@@ -175,21 +175,21 @@ function continueDev(ctx: GenerateContext): Generation {
       path: path.join(ctx.homeDir, '.continue', 'config.yaml'),
       format: 'yaml',
       content: [
-        '# freellmapi:start',
-        'name: FreeLLMAPI',
+        '# switchllm:start',
+        'name: SwitchLLM',
         'version: 1.0.0',
         'schema: v1',
         'models:',
-        '  - name: FreeLLMAPI',
+        '  - name: SwitchLLM',
         '    provider: openai',
         `    model: ${yamlString(model.id)}`,
         `    apiBase: ${yamlString(v1Url(ctx.url))}`,
-        '    apiKey: ${{ secrets.FREELLMAPI_API_KEY }}',
+        '    apiKey: ${{ secrets.SWITCHLLM_API_KEY }}',
         '    capabilities:',
         '      - tool_use',
         '    defaultCompletionOptions:',
         `      contextLength: ${contextWindow(model)}`,
-        '# freellmapi:end',
+        '# switchllm:end',
         '',
       ].join('\n'),
     },
@@ -202,7 +202,7 @@ function continueDev(ctx: GenerateContext): Generation {
       path: path.join(ctx.homeDir, '.continue', '.env'),
       format: 'env',
       sensitive: true,
-      content: `FREELLMAPI_API_KEY=${ctx.apiKey}\n`,
+      content: `SWITCHLLM_API_KEY=${ctx.apiKey}\n`,
     }],
     notes: [
       'The key is in ~/.continue/.env (read by the Continue CLI and the IDE extensions); config.yaml references it as a secret.',
@@ -219,11 +219,11 @@ function aider(ctx: GenerateContext): Generation {
       format: 'yaml',
       sensitive: true,
       content: [
-        '# freellmapi:start',
+        '# switchllm:start',
         `openai-api-base: ${yamlString(v1Url(ctx.url))}`,
         `openai-api-key: ${yamlString(ctx.apiKey)}`,
         `model: ${yamlString(`openai/${model.id}`)}`,
-        '# freellmapi:end',
+        '# switchllm:end',
         '',
       ].join('\n'),
     }],
@@ -254,14 +254,14 @@ function opencode(ctx: GenerateContext): Generation {
       format: 'json',
       value: {
         $schema: 'https://opencode.ai/config.json',
-        model: `freellmapi/${model.id}`,
+        model: `switchllm/${model.id}`,
         provider: {
-          freellmapi: {
+          switchllm: {
             npm: '@ai-sdk/openai-compatible',
-            name: 'FreeLLMAPI',
+            name: 'SwitchLLM',
             options: {
               baseURL: v1Url(ctx.url),
-              apiKey: '{env:FREELLMAPI_API_KEY}',
+              apiKey: '{env:SWITCHLLM_API_KEY}',
             },
             models: modelEntries,
           },
@@ -269,8 +269,8 @@ function opencode(ctx: GenerateContext): Generation {
       },
     }],
     notes: [
-      'Export FREELLMAPI_API_KEY before starting OpenCode.',
-      `freellmapi/${model.id} is now the default model.`,
+      'Export SWITCHLLM_API_KEY before starting OpenCode.',
+      `switchllm/${model.id} is now the default model.`,
     ],
   };
 }
@@ -292,15 +292,15 @@ function goose(ctx: GenerateContext): Generation {
           '.config',
           'goose',
           'custom_providers',
-          'freellmapi.json',
+          'switchllm.json',
         ),
         format: 'json',
         value: {
-          name: 'freellmapi',
+          name: 'switchllm',
           engine: 'openai',
-          display_name: 'FreeLLMAPI',
-          description: 'FreeLLMAPI OpenAI-compatible gateway',
-          api_key_env: 'FREELLMAPI_API_KEY',
+          display_name: 'SwitchLLM',
+          description: 'SwitchLLM OpenAI-compatible gateway',
+          api_key_env: 'SWITCHLLM_API_KEY',
           base_url: v1Url(ctx.url),
           models,
           supports_streaming: true,
@@ -313,15 +313,15 @@ function goose(ctx: GenerateContext): Generation {
         path: path.join(ctx.homeDir, '.config', 'goose', 'config.yaml'),
         format: 'yaml',
         content: [
-          '# freellmapi:start',
-          'GOOSE_PROVIDER: freellmapi',
+          '# switchllm:start',
+          'GOOSE_PROVIDER: switchllm',
           `GOOSE_MODEL: ${yamlString(model.id)}`,
-          '# freellmapi:end',
+          '# switchllm:end',
           '',
         ].join('\n'),
       },
     ],
-    notes: ['Export FREELLMAPI_API_KEY before starting Goose.'],
+    notes: ['Export SWITCHLLM_API_KEY before starting Goose.'],
   };
 }
 
@@ -336,7 +336,7 @@ function qwen(ctx: GenerateContext): Generation {
   const models = [model, ...roster.filter(entry => entry.id !== model.id)].map(entry => ({
     id: entry.id,
     name: entry.name ?? entry.id,
-    envKey: 'FREELLMAPI_API_KEY',
+    envKey: 'SWITCHLLM_API_KEY',
     baseUrl: v1Url(ctx.url),
     generationConfig: {
       contextWindowSize: contextWindow(entry),
@@ -362,7 +362,7 @@ function qwen(ctx: GenerateContext): Generation {
         path: path.join(dir, '.env'),
         format: 'env',
         sensitive: true,
-        content: `FREELLMAPI_API_KEY=${ctx.apiKey}\n`,
+        content: `SWITCHLLM_API_KEY=${ctx.apiKey}\n`,
       },
     ],
     notes: [
@@ -382,8 +382,8 @@ function qwen(ctx: GenerateContext): Generation {
 // ~/.vscode-mock/global-storage/global-state.json.
 function roo(ctx: GenerateContext): Generation {
   const model = primaryModel(ctx.models, ctx.requestedModelId);
-  const importPath = path.join(ctx.homeDir, '.roo', 'freellmapi.json');
-  const cliImportPath = path.join(ctx.homeDir, '.roo', 'freellmapi-cli.json');
+  const importPath = path.join(ctx.homeDir, '.roo', 'switchllm.json');
+  const cliImportPath = path.join(ctx.homeDir, '.roo', 'switchllm-cli.json');
   const cliProfile = {
     apiProvider: 'openrouter',
     openRouterBaseUrl: v1Url(ctx.url),
@@ -398,9 +398,9 @@ function roo(ctx: GenerateContext): Generation {
         sensitive: true,
         value: {
           providerProfiles: {
-            currentApiConfigName: 'freellmapi',
+            currentApiConfigName: 'switchllm',
             apiConfigs: {
-              freellmapi: {
+              switchllm: {
                 apiProvider: 'openai',
                 openAiBaseUrl: v1Url(ctx.url),
                 openAiApiKey: ctx.apiKey,
@@ -412,7 +412,7 @@ function roo(ctx: GenerateContext): Generation {
                   supportsPromptCache: false,
                 },
               },
-              'freellmapi-cli': cliProfile,
+              'switchllm-cli': cliProfile,
             },
           },
           globalSettings: {},
@@ -424,8 +424,8 @@ function roo(ctx: GenerateContext): Generation {
         sensitive: true,
         value: {
           providerProfiles: {
-            currentApiConfigName: 'freellmapi-cli',
-            apiConfigs: { 'freellmapi-cli': cliProfile },
+            currentApiConfigName: 'switchllm-cli',
+            apiConfigs: { 'switchllm-cli': cliProfile },
           },
           globalSettings: {},
         },
@@ -441,7 +441,7 @@ function roo(ctx: GenerateContext): Generation {
       },
     ],
     notes: [
-      `VS Code: add "roo-cline.autoImportSettingsPath": "${importPath}" to settings.json and reload (or Roo Settings → Import); the freellmapi profile becomes current.`,
+      `VS Code: add "roo-cline.autoImportSettingsPath": "${importPath}" to settings.json and reload (or Roo Settings → Import); the switchllm profile becomes current.`,
       `Roo CLI: merge {"roo-cline.autoImportSettingsPath": "${cliImportPath}"} into ~/.vscode-mock/global-storage/global-state.json (create it if missing), then:`,
       `  export OPENROUTER_API_KEY=<unified-key>   # the CLI refuses to start without it, even with the key in the profile`,
       `  roo -m ${model.id} "Say hello"            # -m is required: the CLI's built-in default model shadows cli-settings.json`,
@@ -475,7 +475,7 @@ function kilo(ctx: GenerateContext): Generation {
         provider: {
           'openai-compatible': {
             options: {
-              apiKey: '{env:FREELLMAPI_API_KEY}',
+              apiKey: '{env:SWITCHLLM_API_KEY}',
               baseURL: v1Url(ctx.url),
             },
             models,
@@ -484,7 +484,7 @@ function kilo(ctx: GenerateContext): Generation {
       },
     }],
     notes: [
-      'Export FREELLMAPI_API_KEY before starting Kilo; global config is trusted for {env:…} expansion.',
+      'Export SWITCHLLM_API_KEY before starting Kilo; global config is trusted for {env:…} expansion.',
       `One-shot check: kilo run "Say hello" — openai-compatible/${model.id} is the default model.`,
     ],
   };
@@ -518,23 +518,23 @@ function crush(ctx: GenerateContext): Generation {
       value: {
         $schema: 'https://charm.land/crush.json',
         models: {
-          large: { provider: 'freellmapi', model: model.id },
-          small: { provider: 'freellmapi', model: model.id },
+          large: { provider: 'switchllm', model: model.id },
+          small: { provider: 'switchllm', model: model.id },
         },
         providers: {
-          freellmapi: {
-            name: 'FreeLLMAPI',
+          switchllm: {
+            name: 'SwitchLLM',
             type: 'openai-compat',
             base_url: v1Url(ctx.url),
-            api_key: '$FREELLMAPI_API_KEY',
+            api_key: '$SWITCHLLM_API_KEY',
             models,
           },
         },
       },
     }],
     notes: [
-      'Export FREELLMAPI_API_KEY before starting Crush.',
-      `freellmapi/${model.id} is now the large and small model.`,
+      'Export SWITCHLLM_API_KEY before starting Crush.',
+      `switchllm/${model.id} is now the large and small model.`,
     ],
   };
 }
@@ -558,8 +558,8 @@ function dsh(ctx: GenerateContext): Generation {
   // name it) and must be lowercase; a named profile becomes a second route
   // beside the default one rather than replacing it.
   const route = ctx.profile === 'default'
-    ? 'freellmapi'
-    : `freellmapi-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+    ? 'switchllm'
+    : `switchllm-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
   const roster = catalogModels(ctx.models);
   const entries = [model, ...roster.filter(entry => entry.id !== model.id)]
     .map(entry => ({
@@ -577,8 +577,8 @@ function dsh(ctx: GenerateContext): Generation {
           'llm-pi-ai': {
             providers: {
               [route]: {
-                displayName: ctx.profile === 'default' ? 'FreeLLMAPI' : `FreeLLMAPI (${ctx.profile})`,
-                apiKeyEnv: 'FREELLMAPI_API_KEY',
+                displayName: ctx.profile === 'default' ? 'SwitchLLM' : `SwitchLLM (${ctx.profile})`,
+                apiKeyEnv: 'SWITCHLLM_API_KEY',
                 api: 'openai-completions',
                 baseURL: v1Url(ctx.url),
                 models: entries,
@@ -605,7 +605,7 @@ function dsh(ctx: GenerateContext): Generation {
         path: path.join(home, '.env'),
         format: 'env',
         sensitive: true,
-        content: `FREELLMAPI_API_KEY=${ctx.apiKey}\n`,
+        content: `SWITCHLLM_API_KEY=${ctx.apiKey}\n`,
       },
     ],
     notes: [
@@ -642,7 +642,7 @@ function mimo(ctx: GenerateContext): Generation {
       process.env.XDG_CONFIG_HOME?.trim() || path.join(ctx.homeDir, '.config'),
       'mimocode',
     );
-  // The default model is named as `freellmapi/<id>`, so it has to exist in the
+  // The default model is named as `switchllm/<id>`, so it has to exist in the
   // provider's own `models` map — `auto`, the usual default, is filtered out
   // of the plain catalog roster, so put the chosen model back at the front.
   const roster = catalogModels(ctx.models);
@@ -659,23 +659,23 @@ function mimo(ctx: GenerateContext): Generation {
       value: {
         $schema: 'https://mimo.xiaomi.com/mimocode/config.json',
         provider: {
-          freellmapi: {
+          switchllm: {
             npm: '@ai-sdk/openai-compatible',
-            name: 'FreeLLMAPI',
+            name: 'SwitchLLM',
             options: {
               baseURL: v1Url(ctx.url),
-              apiKey: '{env:FREELLMAPI_API_KEY}',
+              apiKey: '{env:SWITCHLLM_API_KEY}',
             },
             models: modelEntries,
           },
         },
-        model: `freellmapi/${model.id}`,
+        model: `switchllm/${model.id}`,
       },
     }],
     notes: [
       'Install MiMo Code with: curl -fsSL https://mimo.xiaomi.com/install | bash',
-      'Export FREELLMAPI_API_KEY before starting MiMo Code.',
-      `Start it with \`mimo\` — freellmapi/${model.id} is the default model.`,
+      'Export SWITCHLLM_API_KEY before starting MiMo Code.',
+      `Start it with \`mimo\` — switchllm/${model.id} is the default model.`,
       'One-shot check: mimo run "Say hello"',
     ],
   };
@@ -689,10 +689,10 @@ function mimo(ctx: GenerateContext): Generation {
 // gateway with a per-user live catalog is. `api: openai-completions` is the
 // adapter for a /v1/chat/completions backend; OpenClaw already strips the
 // developer role and attribution headers for a custom origin, so no `compat`
-// switches are needed. The key travels as `${FREELLMAPI_API_KEY}`, OpenClaw's
+// switches are needed. The key travels as `${SWITCHLLM_API_KEY}`, OpenClaw's
 // own env substitution, and the value lands in $OPENCLAW_STATE_DIR/.env (0600),
 // the global env file OpenClaw loads on its own — so the route works with
-// nothing exported. The default model is `freellmapi/<id>` under
+// nothing exported. The default model is `switchllm/<id>` under
 // `agents.defaults.model.primary`; the patch keeps any `fallbacks` already
 // declared beside it.
 function openclawStateDir(homeDir: string): string {
@@ -709,8 +709,8 @@ function openclaw(ctx: GenerateContext): Generation {
   // by session state, so it is permanent; a named profile becomes a second
   // provider beside the default one rather than replacing it.
   const provider = ctx.profile === 'default'
-    ? 'freellmapi'
-    : `freellmapi-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+    ? 'switchllm'
+    : `switchllm-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
   const roster = catalogModels(ctx.models);
   const entries = [model, ...roster.filter(entry => entry.id !== model.id)]
     .map(entry => ({
@@ -735,7 +735,7 @@ function openclaw(ctx: GenerateContext): Generation {
             providers: {
               [provider]: {
                 baseUrl: v1Url(ctx.url),
-                apiKey: '${FREELLMAPI_API_KEY}',
+                apiKey: '${SWITCHLLM_API_KEY}',
                 api: 'openai-completions',
                 // OpenClaw attaches its own `openclaw/<version>` identity only
                 // to endpoints it recognises; a custom origin gets the bare
@@ -753,7 +753,7 @@ function openclaw(ctx: GenerateContext): Generation {
         path: path.join(stateDir, '.env'),
         format: 'env',
         sensitive: true,
-        content: `FREELLMAPI_API_KEY=${ctx.apiKey}\n`,
+        content: `SWITCHLLM_API_KEY=${ctx.apiKey}\n`,
       },
     ],
     notes: [
@@ -772,7 +772,7 @@ function openclaw(ctx: GenerateContext): Generation {
 // endpoint: OPENAI_BASE_URL is deliberately ignored for anything but
 // api.openai.com, and OPENAI_API_KEY is only sent to OpenAI hosts. So the
 // gateway goes into the `model` block as `provider: custom` with `base_url`,
-// and the key travels as `api_key: "${FREELLMAPI_API_KEY}"` — Hermes's own
+// and the key travels as `api_key: "${SWITCHLLM_API_KEY}"` — Hermes's own
 // substitution — with the value in $HERMES_HOME/.env (0600), the file Hermes
 // loads on its own, so nothing needs exporting. A fresh install ships
 // `model: ""` (a "not configured" sentinel); replacing it with the mapping is
@@ -783,7 +783,7 @@ function openclaw(ctx: GenerateContext): Generation {
 function hermes(ctx: GenerateContext): Generation {
   const model = primaryModel(ctx.models, ctx.requestedModelId);
   const home = process.env.HERMES_HOME?.trim() || path.join(ctx.homeDir, '.hermes');
-  const provider = `freellmapi-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+  const provider = `switchllm-${ctx.profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
   // Hermes only identifies itself to hosts it knows; a custom endpoint gets the
   // bare openai-python user agent. `default_headers` is its documented way to
   // override that, and it is what lets the gateway's analytics name the client.
@@ -794,7 +794,7 @@ function hermes(ctx: GenerateContext): Generation {
         provider: 'custom',
         default: model.id,
         base_url: v1Url(ctx.url),
-        api_key: '${FREELLMAPI_API_KEY}',
+        api_key: '${SWITCHLLM_API_KEY}',
         api_mode: 'chat_completions',
         context_length: contextWindow(model),
         default_headers: headers,
@@ -807,9 +807,9 @@ function hermes(ctx: GenerateContext): Generation {
     : {
       providers: {
         [provider]: {
-          name: `FreeLLMAPI (${ctx.profile})`,
+          name: `SwitchLLM (${ctx.profile})`,
           api: v1Url(ctx.url),
-          api_key: '${FREELLMAPI_API_KEY}',
+          api_key: '${SWITCHLLM_API_KEY}',
           transport: 'chat_completions',
           default_model: model.id,
           context_length: contextWindow(model),
@@ -824,7 +824,7 @@ function hermes(ctx: GenerateContext): Generation {
         path: path.join(home, '.env'),
         format: 'env',
         sensitive: true,
-        content: `FREELLMAPI_API_KEY=${ctx.apiKey}\n`,
+        content: `SWITCHLLM_API_KEY=${ctx.apiKey}\n`,
       },
     ],
     notes: [
@@ -863,9 +863,9 @@ function atomcode(ctx: GenerateContext): Generation {
       format: 'toml',
       sensitive: true,
       content: [
-        'default_provider = "freellmapi"',
+        'default_provider = "switchllm"',
         '',
-        '[providers.freellmapi]',
+        '[providers.switchllm]',
         'type = "openai"',
         `base_url = ${JSON.stringify(v1Url(ctx.url))}`,
         `api_key = ${JSON.stringify(ctx.apiKey)}`,
@@ -875,7 +875,7 @@ function atomcode(ctx: GenerateContext): Generation {
     }],
     notes: [
       'AtomCode reads ~/.atomcode/config.toml; other [providers.*] tables in it are kept.',
-      `default_provider now points at [providers.freellmapi] with ${model.id} as its model.`,
+      `default_provider now points at [providers.switchllm] with ${model.id} as its model.`,
       'Point base_url at the unified /v1 endpoint; api_key is the unified key shown on the Agents page.',
       'One-shot check: atomcode -p "Say hello" (telemetry is on by default: atomcode telemetry disable).',
     ],
